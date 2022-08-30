@@ -1,0 +1,14 @@
+{
+  "chatModel": [
+    {
+      "id": 1,
+      "text": "Hi. Welcome to Flutter Bot. What can I help you?",
+      "author": "FLUTTER BOT",
+      "imageUrl": "https://cdn.technologyadvice.com/wp-content/uploads/2018/02/friendly-chatbot.jpg",
+      "suggestion": [
+        "Hello",
+        "Hi"
+      ]
+    }
+  ]
+}

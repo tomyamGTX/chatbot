@@ -1,9 +1,13 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:chat_bubbles/bubbles/bubble_special_three.dart';
 import 'package:chatbot/models/chat.model.dart';
+import 'package:chatbot/providers/chat.providers.dart';
+import 'package:chatbot/widgets/suggestion.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,21 +19,27 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'ChatBot App',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<ChatProvider>(
+            create: (context) => ChatProvider())
+      ],
+      child: MaterialApp(
+        title: 'ChatBot App',
+        theme: ThemeData(
+          // This is the theme of your application.
+          //
+          // Try running your application with "flutter run". You'll see the
+          // application has a blue toolbar. Then, without quitting the app, try
+          // changing the primarySwatch below to Colors.green and then invoke
+          // "hot reload" (press "r" in the console where you ran "flutter run",
+          // or simply save your changes to "hot reload" in a Flutter IDE).
+          // Notice that the counter didn't reset back to zero; the application
+          // is not restarted.
+          primarySwatch: Colors.blue,
+        ),
+        home: const MyHomePage(title: 'FLUTTER BOT'),
       ),
-      home: const MyHomePage(title: 'FLUTTER BOT'),
     );
   }
 }
@@ -53,27 +63,20 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<ChatModel> chat = [
-    ChatModel(
-        text: 'Hello there',
-        author: 'FLUTTER BOT',
-        imageUrl:
-            'https://cdn.technologyadvice.com/wp-content/uploads/2018/02/friendly-chatbot.jpg',
-        id: 0)
-  ];
+  @override
+  void initState() {
+    // TODO: implement initState
+    readJson();
+    super.initState();
+  }
 
   final _input = TextEditingController();
   final _controller = ScrollController();
+
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      backgroundColor: Theme.of(context).primaryColor,
+      backgroundColor: Theme.of(context).primaryColorLight,
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
@@ -83,119 +86,228 @@ class _MyHomePageState extends State<MyHomePage> {
           IconButton(onPressed: () {}, icon: const Icon(Icons.settings))
         ],
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Flexible(
-            fit: FlexFit.tight,
-            child: SingleChildScrollView(
-              controller: _controller,
-              child: Column(
-                  children: chat
-                      .map((e) => Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 16),
-                            child: Directionality(
-                              textDirection: e.author == widget.title
-                                  ? TextDirection.ltr
-                                  : TextDirection.rtl,
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    backgroundImage: NetworkImage(e.imageUrl),
-                                  ),
-                                  Flexible(
-                                    child: GestureDetector(
-                                        onLongPress: () async {
-                                          await showDialog(
-                                            barrierDismissible: false,
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return AlertDialog(
-                                                title: const Text(
-                                                    'Delete this message?'),
-                                                actions: [
-                                                  TextButton(
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                              context),
-                                                      child: const Text('No')),
-                                                  ElevatedButton(
-                                                      onPressed: () {
-                                                        setState(() {});
-                                                        chat.remove(e);
-                                                        Navigator.pop(context);
-                                                      },
-                                                      child: const Text('Yes'))
+      body: Consumer<ChatProvider>(builder: (context, data, _) {
+        return data.chat.isEmpty
+            ? const Center(
+                child: CircularProgressIndicator(
+                semanticsLabel: 'Loading',
+              ))
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    fit: FlexFit.tight,
+                    child: SingleChildScrollView(
+                      controller: _controller,
+                      child: Column(
+                          children: data.chat
+                              .map((e) => Column(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 16),
+                                        child: e.author == widget.title
+                                            ? Row(
+                                                children: [
+                                                  CircleAvatar(
+                                                    backgroundImage:
+                                                        NetworkImage(
+                                                            e.imageUrl!),
+                                                  ),
+                                                  Flexible(
+                                                    child: GestureDetector(
+                                                        onLongPress: () async {
+                                                          await showDialog(
+                                                            barrierDismissible:
+                                                                false,
+                                                            context: context,
+                                                            builder:
+                                                                (BuildContext
+                                                                    context) {
+                                                              return AlertDialog(
+                                                                title: const Text(
+                                                                    'Delete this message?'),
+                                                                actions: [
+                                                                  TextButton(
+                                                                      onPressed: () =>
+                                                                          Navigator.pop(
+                                                                              context),
+                                                                      child: const Text(
+                                                                          'No')),
+                                                                  ElevatedButton(
+                                                                      onPressed:
+                                                                          () {
+                                                                        setState(
+                                                                            () {});
+                                                                        data.chat
+                                                                            .remove(e);
+                                                                        Navigator.pop(
+                                                                            context);
+                                                                      },
+                                                                      child: const Text(
+                                                                          'Yes'))
+                                                                ],
+                                                              );
+                                                            },
+                                                          );
+                                                        },
+                                                        child:
+                                                            BubbleSpecialThree(
+                                                          text: e.text!,
+                                                          textStyle: TextStyle(
+                                                              fontSize: 18,
+                                                              color: e.author !=
+                                                                      widget
+                                                                          .title
+                                                                  ? Colors.white
+                                                                  : null),
+                                                          color: e.author !=
+                                                                  widget.title
+                                                              ? Colors.blueGrey
+                                                              : Colors.white,
+                                                          delivered: e.author !=
+                                                                  widget.title
+                                                              ? true
+                                                              : false,
+                                                          tail: false,
+                                                          isSender: e.author !=
+                                                                  widget.title
+                                                              ? true
+                                                              : false,
+                                                        )),
+                                                  ),
                                                 ],
-                                              );
-                                            },
-                                          );
-                                        },
-                                        child: BubbleSpecialThree(
-                                          text: e.text,
-                                          textStyle: TextStyle(
-                                              fontSize: 18,
-                                              color: e.author != widget.title
-                                                  ? Colors.white
-                                                  : null),
-                                          color: e.author != widget.title
-                                              ? Colors.blueGrey
-                                              : Colors.white,
-                                          delivered: e.author != widget.title
-                                              ? true
-                                              : false,
-                                          tail: false,
-                                          isSender: e.author != widget.title
-                                              ? true
-                                              : false,
-                                        )),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ))
-                      .toList()),
-            ),
-          ),
-          ListTile(
-            tileColor: Colors.white,
-            trailing: IconButton(
-              icon: const Icon(
-                Icons.send,
-                color: Colors.blueAccent,
-              ),
-              onPressed: () {
-                if (_input.text.isNotEmpty) {
-                  var id = Random().nextInt(10);
-                  setState(() {
-                    chat.add(ChatModel(
-                        text: _input.text,
-                        author: 'user',
-                        imageUrl:
-                            'https://flyclipart.com/thumb2/user-icon-png-pnglogocom-133466.png',
-                        id: id));
-                  });
-                  _input.clear();
-                  SystemChannels.textInput.invokeMethod('TextInput.hide');
-                  getResponse(id);
-                  _scrollDown();
-                }
-              },
-            ),
-            title: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: TextFormField(
-                controller: _input,
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'Type your message here',
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+                                              )
+                                            : Row(
+                                                children: [
+                                                  Flexible(
+                                                    child: GestureDetector(
+                                                        onLongPress: () async {
+                                                          await showDialog(
+                                                            barrierDismissible:
+                                                                false,
+                                                            context: context,
+                                                            builder:
+                                                                (BuildContext
+                                                                    context) {
+                                                              return AlertDialog(
+                                                                title: const Text(
+                                                                    'Delete this message?'),
+                                                                actions: [
+                                                                  TextButton(
+                                                                      onPressed: () =>
+                                                                          Navigator.pop(
+                                                                              context),
+                                                                      child: const Text(
+                                                                          'No')),
+                                                                  ElevatedButton(
+                                                                      onPressed:
+                                                                          () {
+                                                                        setState(
+                                                                            () {});
+                                                                        data.chat
+                                                                            .remove(e);
+                                                                        Navigator.pop(
+                                                                            context);
+                                                                      },
+                                                                      child: const Text(
+                                                                          'Yes'))
+                                                                ],
+                                                              );
+                                                            },
+                                                          );
+                                                        },
+                                                        child:
+                                                            BubbleSpecialThree(
+                                                          text: e.text!,
+                                                          textStyle: TextStyle(
+                                                              fontSize: 18,
+                                                              color: e.author !=
+                                                                      widget
+                                                                          .title
+                                                                  ? Colors.white
+                                                                  : null),
+                                                          color: e.author !=
+                                                                  widget.title
+                                                              ? Colors.blueGrey
+                                                              : Colors.white,
+                                                          delivered: e.author !=
+                                                                  widget.title
+                                                              ? true
+                                                              : false,
+                                                          tail: false,
+                                                          isSender: e.author !=
+                                                                  widget.title
+                                                              ? true
+                                                              : false,
+                                                        )),
+                                                  ),
+                                                  CircleAvatar(
+                                                    backgroundImage:
+                                                        NetworkImage(
+                                                            e.imageUrl!),
+                                                  ),
+                                                ],
+                                              ),
+                                      ),
+                                      Wrap(
+                                        children: [
+                                          for (var item in e.suggestion!)
+                                            Suggestion(
+                                              item: item.toString(),
+                                              id: e.id!,
+                                            )
+                                        ],
+                                      )
+                                    ],
+                                  ))
+                              .toList()),
+                    ),
+                  ),
+                  ListTile(
+                    tileColor: Colors.white,
+                    trailing: IconButton(
+                      icon: const Icon(
+                        Icons.send,
+                        color: Colors.blueAccent,
+                      ),
+                      onPressed: () {
+                        if (_input.text.isNotEmpty) {
+                          var id = Random().nextInt(10);
+                          setState(() {
+                            Provider.of<ChatProvider>(context, listen: false)
+                                .addChat(ChatModel(
+                                    text: _input.text,
+                                    author: 'user',
+                                    imageUrl:
+                                        'https://flyclipart.com/thumb2/user-icon-png-pnglogocom-133466.png',
+                                    id: id,
+                                    suggestion: []));
+                          });
+
+                          SystemChannels.textInput
+                              .invokeMethod('TextInput.hide');
+                          Provider.of<ChatProvider>(context, listen: false)
+                              .getResponse(id, _input.text);
+                          _input.clear();
+                          _scrollDown();
+                        }
+                      },
+                    ),
+                    title: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: TextFormField(
+                        controller: _input,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Type your message here',
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+      }),
     );
   }
 
@@ -203,31 +315,14 @@ class _MyHomePageState extends State<MyHomePage> {
     _controller.jumpTo(_controller.position.maxScrollExtent);
   }
 
-  void getResponse(int id) {
-    if (id == 0) {
-      setState(() {});
-      chat.add(ChatModel(
-          text: 'Can you repeat again?',
-          author: 'FLUTTER BOT',
-          imageUrl:
-              'https://cdn.technologyadvice.com/wp-content/uploads/2018/02/friendly-chatbot.jpg',
-          id: 11));
-    } else if (id == 1) {
-      setState(() {});
-      chat.add(ChatModel(
-          text: 'How are you?',
-          author: 'FLUTTER BOT',
-          imageUrl:
-              'https://cdn.technologyadvice.com/wp-content/uploads/2018/02/friendly-chatbot.jpg',
-          id: 11));
-    } else {
-      setState(() {});
-      chat.add(ChatModel(
-          text: 'Good to hear',
-          author: 'FLUTTER BOT',
-          imageUrl:
-              'https://cdn.technologyadvice.com/wp-content/uploads/2018/02/friendly-chatbot.jpg',
-          id: 12));
-    }
+  Future<void> readJson() async {
+    String data = await DefaultAssetBundle.of(context)
+        .loadString("assets/rule_based_chatbot.json");
+
+    final jsonResult = RuleModel.fromJson(jsonDecode(data));
+    setState(() {});
+    if (!mounted) return;
+    Provider.of<ChatProvider>(context, listen: false)
+        .getFromJson(jsonResult.chatModel!);
   }
 }
