@@ -1,13 +1,55 @@
 {
-  "chatModel": [
+  "intro": {
+    "id": 0,
+    "text": "Hi. Welcome to Flutter Bot. What can I help you?",
+    "author": "FLUTTER BOT",
+    "imageUrl": "https://cdn.technologyadvice.com/wp-content/uploads/2018/02/friendly-chatbot.jpg",
+    "suggestion": [
+      {
+        "id": 1,
+        "text": "What is Flutter"
+      },
+      {
+        "id": 2,
+        "text": "How to install Flutter?"
+      }
+    ]
+  },
+  "response": [
     {
       "id": 1,
-      "text": "Hi. Welcome to Flutter Bot. What can I help you?",
+      "text": "Flutter is framework for Dart Programming Language",
       "author": "FLUTTER BOT",
       "imageUrl": "https://cdn.technologyadvice.com/wp-content/uploads/2018/02/friendly-chatbot.jpg",
       "suggestion": [
-        "Hello",
-        "Hi"
+        {
+          "id": 0,
+          "text": "Back to Main Menu"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "text": "You can install at Flutter - https://www.flutter.dev.",
+      "author": "FLUTTER BOT",
+      "imageUrl": "https://cdn.technologyadvice.com/wp-content/uploads/2018/02/friendly-chatbot.jpg",
+      "suggestion": [
+        {
+          "id": 3,
+          "text": "Thanks"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "text": "You're welcome.",
+      "author": "FLUTTER BOT",
+      "imageUrl": "https://cdn.technologyadvice.com/wp-content/uploads/2018/02/friendly-chatbot.jpg",
+      "suggestion": [
+        {
+          "id": 0,
+          "text": "Back to Main Menu"
+        }
       ]
     }
   ]

@@ -1,11 +1,12 @@
-import 'package:chatbot/models/chat.model.dart';
-import 'package:chatbot/providers/chat.providers.dart';
 import 'package:flutter/material.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:provider/provider.dart';
 
-class Suggestion extends StatelessWidget {
-  const Suggestion({
+import '../models/chat.model.dart';
+import '../providers/chat.providers.dart';
+
+class SuggestionChip extends StatelessWidget {
+  const SuggestionChip({
     Key? key,
     required this.id,
     required this.item,
@@ -24,15 +25,15 @@ class Suggestion extends StatelessWidget {
               author: 'user',
               imageUrl:
                   'https://flyclipart.com/thumb2/user-icon-png-pnglogocom-133466.png',
-              id: id + 1,
+              id: id,
               suggestion: []));
-          Provider.of<ChatProvider>(context, listen: false)
-              .getResponse(id + 1, item);
+          // Provider.of<ChatProvider>(context, listen: false)
+          //     .getResponse(id + 1, item);
         },
         child: Chip(
           label: Text(
             item,
-            style: const TextStyle(color: white),
+            style: const TextStyle(color: white, fontSize: 19),
           ),
           backgroundColor: Theme.of(context).primaryColorDark,
           labelPadding: const EdgeInsets.symmetric(horizontal: 8),

@@ -1,21 +1,26 @@
-class RuleModel {
-  List<ChatModel>? chatModel;
+class RuleBasedChatbot {
+  ChatModel? intro;
+  List<ChatModel>? response;
 
-  RuleModel({this.chatModel});
+  RuleBasedChatbot({this.intro, this.response});
 
-  RuleModel.fromJson(Map<String, dynamic> json) {
-    if (json['chatModel'] != null) {
-      chatModel = <ChatModel>[];
-      json['chatModel'].forEach((v) {
-        chatModel!.add(ChatModel.fromJson(v));
+  RuleBasedChatbot.fromJson(Map<String, dynamic> json) {
+    intro = json['intro'] != null ? ChatModel.fromJson(json['intro']) : null;
+    if (json['response'] != null) {
+      response = [];
+      json['response'].forEach((v) {
+        response!.add(ChatModel.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    if (chatModel != null) {
-      data['chatModel'] = chatModel!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    if (intro != null) {
+      data['intro'] = intro!.toJson();
+    }
+    if (response != null) {
+      data['response'] = response!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -26,7 +31,7 @@ class ChatModel {
   String? text;
   String? author;
   String? imageUrl;
-  List? suggestion;
+  List<Suggestion>? suggestion;
 
   ChatModel({this.id, this.text, this.author, this.imageUrl, this.suggestion});
 
@@ -35,7 +40,12 @@ class ChatModel {
     text = json['text'];
     author = json['author'];
     imageUrl = json['imageUrl'];
-    suggestion = json['suggestion'];
+    if (json['suggestion'] != null) {
+      suggestion = <Suggestion>[];
+      json['suggestion'].forEach((v) {
+        suggestion!.add(Suggestion.fromJson(v));
+      });
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -44,7 +54,28 @@ class ChatModel {
     data['text'] = text;
     data['author'] = author;
     data['imageUrl'] = imageUrl;
-    data['suggestion'] = suggestion;
+    if (suggestion != null) {
+      data['suggestion'] = suggestion!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
+class Suggestion {
+  int? id;
+  String? text;
+
+  Suggestion({this.id, this.text});
+
+  Suggestion.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    text = json['text'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['text'] = text;
     return data;
   }
 }

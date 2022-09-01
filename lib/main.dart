@@ -1,13 +1,13 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:chat_bubbles/bubbles/bubble_special_three.dart';
 import 'package:chatbot/models/chat.model.dart';
 import 'package:chatbot/providers/chat.providers.dart';
-import 'package:chatbot/widgets/suggestion.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:nb_utils/nb_utils.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   runApp(const MyApp());
@@ -86,243 +86,306 @@ class _MyHomePageState extends State<MyHomePage> {
           IconButton(onPressed: () {}, icon: const Icon(Icons.settings))
         ],
       ),
-      body: Consumer<ChatProvider>(builder: (context, data, _) {
-        return data.chat.isEmpty
-            ? const Center(
-                child: CircularProgressIndicator(
-                semanticsLabel: 'Loading',
-              ))
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    fit: FlexFit.tight,
-                    child: SingleChildScrollView(
-                      controller: _controller,
-                      child: Column(
-                          children: data.chat
-                              .map((e) => Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 16, vertical: 16),
-                                        child: e.author == widget.title
-                                            ? Row(
-                                                children: [
-                                                  CircleAvatar(
-                                                    backgroundImage:
-                                                        NetworkImage(
-                                                            e.imageUrl!),
-                                                  ),
-                                                  Flexible(
-                                                    child: GestureDetector(
-                                                        onLongPress: () async {
-                                                          await showDialog(
-                                                            barrierDismissible:
-                                                                false,
-                                                            context: context,
-                                                            builder:
-                                                                (BuildContext
-                                                                    context) {
-                                                              return AlertDialog(
-                                                                title: const Text(
-                                                                    'Delete this message?'),
-                                                                actions: [
-                                                                  TextButton(
-                                                                      onPressed: () =>
-                                                                          Navigator.pop(
-                                                                              context),
-                                                                      child: const Text(
-                                                                          'No')),
-                                                                  ElevatedButton(
-                                                                      onPressed:
-                                                                          () {
-                                                                        setState(
-                                                                            () {});
-                                                                        data.chat
-                                                                            .remove(e);
-                                                                        Navigator.pop(
-                                                                            context);
-                                                                      },
-                                                                      child: const Text(
-                                                                          'Yes'))
-                                                                ],
-                                                              );
-                                                            },
-                                                          );
-                                                        },
-                                                        child:
-                                                            BubbleSpecialThree(
-                                                          text: e.text!,
-                                                          textStyle: TextStyle(
-                                                              fontSize: 18,
-                                                              color: e.author !=
-                                                                      widget
-                                                                          .title
-                                                                  ? Colors.white
-                                                                  : null),
-                                                          color: e.author !=
-                                                                  widget.title
-                                                              ? Colors.blueGrey
-                                                              : Colors.white,
-                                                          delivered: e.author !=
-                                                                  widget.title
-                                                              ? true
-                                                              : false,
-                                                          tail: false,
-                                                          isSender: e.author !=
-                                                                  widget.title
-                                                              ? true
-                                                              : false,
-                                                        )),
-                                                  ),
-                                                ],
-                                              )
-                                            : Row(
-                                                children: [
-                                                  Flexible(
-                                                    child: GestureDetector(
-                                                        onLongPress: () async {
-                                                          await showDialog(
-                                                            barrierDismissible:
-                                                                false,
-                                                            context: context,
-                                                            builder:
-                                                                (BuildContext
-                                                                    context) {
-                                                              return AlertDialog(
-                                                                title: const Text(
-                                                                    'Delete this message?'),
-                                                                actions: [
-                                                                  TextButton(
-                                                                      onPressed: () =>
-                                                                          Navigator.pop(
-                                                                              context),
-                                                                      child: const Text(
-                                                                          'No')),
-                                                                  ElevatedButton(
-                                                                      onPressed:
-                                                                          () {
-                                                                        setState(
-                                                                            () {});
-                                                                        data.chat
-                                                                            .remove(e);
-                                                                        Navigator.pop(
-                                                                            context);
-                                                                      },
-                                                                      child: const Text(
-                                                                          'Yes'))
-                                                                ],
-                                                              );
-                                                            },
-                                                          );
-                                                        },
-                                                        child:
-                                                            BubbleSpecialThree(
-                                                          text: e.text!,
-                                                          textStyle: TextStyle(
-                                                              fontSize: 18,
-                                                              color: e.author !=
-                                                                      widget
-                                                                          .title
-                                                                  ? Colors.white
-                                                                  : null),
-                                                          color: e.author !=
-                                                                  widget.title
-                                                              ? Colors.blueGrey
-                                                              : Colors.white,
-                                                          delivered: e.author !=
-                                                                  widget.title
-                                                              ? true
-                                                              : false,
-                                                          tail: false,
-                                                          isSender: e.author !=
-                                                                  widget.title
-                                                              ? true
-                                                              : false,
-                                                        )),
-                                                  ),
-                                                  CircleAvatar(
-                                                    backgroundImage:
-                                                        NetworkImage(
-                                                            e.imageUrl!),
-                                                  ),
-                                                ],
+      body: Padding(
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 14),
+        child: Consumer<ChatProvider>(builder: (context, data, _) {
+          return data.chat.isEmpty
+              ? const Center(
+                  child: CircularProgressIndicator(
+                  semanticsLabel: 'Loading',
+                ))
+              : SingleChildScrollView(
+                  controller: _controller,
+                  child: Column(
+                      children: data.chat
+                          .map((e) => Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        top: 16,
+                                        left: 16,
+                                        right: 16,
+                                        bottom: 8),
+                                    child: e.author == widget.title
+                                        ? Row(
+                                            children: [
+                                              CircleAvatar(
+                                                backgroundImage:
+                                                    NetworkImage(e.imageUrl!),
                                               ),
-                                      ),
-                                      Wrap(
-                                        children: [
-                                          for (var item in e.suggestion!)
-                                            Suggestion(
-                                              item: item.toString(),
-                                              id: e.id!,
-                                            )
-                                        ],
-                                      )
+                                              Flexible(
+                                                child: GestureDetector(
+                                                    onTap: () async {
+                                                      RegExp exp = RegExp(
+                                                          r'(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-?=%.]+');
+                                                      Iterable<RegExpMatch>
+                                                          matches =
+                                                          exp.allMatches(
+                                                              e.text!);
+                                                      if (matches.isNotEmpty) {
+                                                        await showDialog(
+                                                          context: context,
+                                                          builder: (BuildContext
+                                                              context) {
+                                                            return AlertDialog(
+                                                              title: const Text(
+                                                                  'Navigate to the url?'),
+                                                              actions: [
+                                                                TextButton(
+                                                                    onPressed: () =>
+                                                                        Navigator.pop(
+                                                                            context),
+                                                                    child: const Text(
+                                                                        'No')),
+                                                                ElevatedButton(
+                                                                    onPressed:
+                                                                        () {
+                                                                      matches.forEach(
+                                                                          (match) {
+                                                                        launchUrl(Uri.parse(e.text!.substring(
+                                                                            match.start,
+                                                                            match.end)));
+                                                                      });
+                                                                      Navigator.pop(
+                                                                          context);
+                                                                    },
+                                                                    child: const Text(
+                                                                        'Yes'))
+                                                              ],
+                                                            );
+                                                          },
+                                                        );
+                                                      }
+                                                    },
+                                                    onLongPress: () async {
+                                                      await showDialog(
+                                                        barrierDismissible:
+                                                            false,
+                                                        context: context,
+                                                        builder: (BuildContext
+                                                            context) {
+                                                          return AlertDialog(
+                                                            title: const Text(
+                                                                'Delete this message?'),
+                                                            actions: [
+                                                              TextButton(
+                                                                  onPressed: () =>
+                                                                      Navigator.pop(
+                                                                          context),
+                                                                  child:
+                                                                      const Text(
+                                                                          'No')),
+                                                              ElevatedButton(
+                                                                  onPressed:
+                                                                      () {
+                                                                    setState(
+                                                                        () {});
+                                                                    data.chat
+                                                                        .remove(
+                                                                            e);
+                                                                    Navigator.pop(
+                                                                        context);
+                                                                  },
+                                                                  child:
+                                                                      const Text(
+                                                                          'Yes'))
+                                                            ],
+                                                          );
+                                                        },
+                                                      );
+                                                    },
+                                                    child: BubbleSpecialThree(
+                                                      text: e.text!,
+                                                      textStyle: TextStyle(
+                                                          fontSize: 18,
+                                                          color: e.author !=
+                                                                  widget.title
+                                                              ? Colors.white
+                                                              : null),
+                                                      color: e.author !=
+                                                              widget.title
+                                                          ? Colors.blueGrey
+                                                          : Colors.white,
+                                                      delivered: e.author !=
+                                                              widget.title
+                                                          ? true
+                                                          : false,
+                                                      tail: false,
+                                                      isSender: e.author !=
+                                                              widget.title
+                                                          ? true
+                                                          : false,
+                                                    )),
+                                              ),
+                                            ],
+                                          )
+                                        : Row(
+                                            children: [
+                                              Flexible(
+                                                child: GestureDetector(
+                                                    onLongPress: () async {
+                                                      await showDialog(
+                                                        barrierDismissible:
+                                                            false,
+                                                        context: context,
+                                                        builder: (BuildContext
+                                                            context) {
+                                                          return AlertDialog(
+                                                            title: const Text(
+                                                                'Delete this message?'),
+                                                            actions: [
+                                                              TextButton(
+                                                                  onPressed: () =>
+                                                                      Navigator.pop(
+                                                                          context),
+                                                                  child:
+                                                                      const Text(
+                                                                          'No')),
+                                                              ElevatedButton(
+                                                                  onPressed:
+                                                                      () {
+                                                                    setState(
+                                                                        () {});
+                                                                    data.chat
+                                                                        .remove(
+                                                                            e);
+                                                                    Navigator.pop(
+                                                                        context);
+                                                                  },
+                                                                  child:
+                                                                      const Text(
+                                                                          'Yes'))
+                                                            ],
+                                                          );
+                                                        },
+                                                      );
+                                                    },
+                                                    child: BubbleSpecialThree(
+                                                      text: e.text!,
+                                                      textStyle: TextStyle(
+                                                          fontSize: 18,
+                                                          color: e.author !=
+                                                                  widget.title
+                                                              ? Colors.white
+                                                              : null),
+                                                      color: e.author !=
+                                                              widget.title
+                                                          ? Colors.blueGrey
+                                                          : Colors.white,
+                                                      delivered: e.author !=
+                                                              widget.title
+                                                          ? true
+                                                          : false,
+                                                      tail: false,
+                                                      isSender: e.author !=
+                                                              widget.title
+                                                          ? true
+                                                          : false,
+                                                    )),
+                                              ),
+                                              CircleAvatar(
+                                                backgroundImage:
+                                                    NetworkImage(e.imageUrl!),
+                                              ),
+                                            ],
+                                          ),
+                                  ),
+                                  Wrap(
+                                    alignment: WrapAlignment.spaceEvenly,
+                                    spacing: 8,
+                                    children: [
+                                      for (var item in e.suggestion!)
+                                        GestureDetector(
+                                          onTap: () async {
+                                            await data.addChat(ChatModel(
+                                                text: item.text,
+                                                author: 'user',
+                                                imageUrl:
+                                                    'https://flyclipart.com/thumb2/user-icon-png-pnglogocom-133466.png',
+                                                id: item.id,
+                                                suggestion: []));
+                                            Future.delayed(
+                                                const Duration(
+                                                    milliseconds: 500),
+                                                _scrollDown);
+                                            // Provider.of<ChatProvider>(context, listen: false)
+                                            //     .getResponse(id + 1, item);
+                                          },
+                                          child: Chip(
+                                            label: Text(
+                                              item.text!,
+                                              style:
+                                                  const TextStyle(color: white),
+                                            ),
+                                            backgroundColor: Theme.of(context)
+                                                .primaryColorDark,
+                                            labelPadding:
+                                                const EdgeInsets.symmetric(
+                                                    horizontal: 8),
+                                          ),
+                                        )
                                     ],
-                                  ))
-                              .toList()),
-                    ),
-                  ),
-                  ListTile(
-                    tileColor: Colors.white,
-                    trailing: IconButton(
-                      icon: const Icon(
-                        Icons.send,
-                        color: Colors.blueAccent,
-                      ),
-                      onPressed: () {
-                        if (_input.text.isNotEmpty) {
-                          var id = Random().nextInt(10);
-                          setState(() {
-                            Provider.of<ChatProvider>(context, listen: false)
-                                .addChat(ChatModel(
-                                    text: _input.text,
-                                    author: 'user',
-                                    imageUrl:
-                                        'https://flyclipart.com/thumb2/user-icon-png-pnglogocom-133466.png',
-                                    id: id,
-                                    suggestion: []));
-                          });
+                                  )
+                                ],
+                              ))
+                          .toList()),
+                );
+        }),
+      ),
+      bottomSheet: ListTile(
+        tileColor: Colors.white,
+        trailing: IconButton(
+          icon: const Icon(
+            Icons.send,
+            color: Colors.blueAccent,
+          ),
+          onPressed: () {
+            if (_input.text.isNotEmpty) {
+              setState(() {
+                Provider.of<ChatProvider>(context, listen: false).addChat(ChatModel(
+                    text: _input.text,
+                    author: 'user',
+                    imageUrl:
+                        'https://flyclipart.com/thumb2/user-icon-png-pnglogocom-133466.png',
+                    id: 4,
+                    suggestion: []));
+              });
 
-                          SystemChannels.textInput
-                              .invokeMethod('TextInput.hide');
-                          Provider.of<ChatProvider>(context, listen: false)
-                              .getResponse(id, _input.text);
-                          _input.clear();
-                          _scrollDown();
-                        }
-                      },
-                    ),
-                    title: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: TextFormField(
-                        controller: _input,
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Type your message here',
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-      }),
+              SystemChannels.textInput.invokeMethod('TextInput.hide');
+              // Provider.of<ChatProvider>(context, listen: false)
+              //     .getResponse(id, _input.text);
+              _input.clear();
+              Future.delayed(const Duration(milliseconds: 500), _scrollDown);
+            }
+          },
+        ),
+        title: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: TextFormField(
+            controller: _input,
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              hintText: 'Type your message here',
+            ),
+          ),
+        ),
+      ),
     );
   }
 
   void _scrollDown() {
-    _controller.jumpTo(_controller.position.maxScrollExtent);
+    setState(() {});
+    _controller.jumpToBottom();
   }
 
   Future<void> readJson() async {
     String data = await DefaultAssetBundle.of(context)
         .loadString("assets/rule_based_chatbot.json");
 
-    final jsonResult = RuleModel.fromJson(jsonDecode(data));
+    final jsonResult = RuleBasedChatbot.fromJson(jsonDecode(data));
     setState(() {});
     if (!mounted) return;
-    Provider.of<ChatProvider>(context, listen: false)
-        .getFromJson(jsonResult.chatModel!);
+    Provider.of<ChatProvider>(context, listen: false).getFromJson(jsonResult);
   }
 }
